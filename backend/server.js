@@ -120,20 +120,104 @@ app.post('/generate-pdf', async (req, res) => {
         /* Main CSS with higher specificity */
         ${cssContent}
         
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Times New Roman', Times, serif;
-    background-color: #f5f5f5;
-    padding: 0;
-    font-size: 16px;
-    /* Increased base font size */
-    text-align: justify;
-}
+        /* Production-specific A4 formatting overrides */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .resume-container {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 6mm !important;
+            background: white !important;
+            box-shadow: none !important;
+            position: relative !important;
+            overflow: visible !important;
+            box-sizing: border-box !important;
+            page-break-after: avoid !important;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif !important;
+            background-color: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            display: block !important;
+            overflow: visible !important;
+        }
+        
+        html {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            overflow: visible !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        /* Ensure all content fits in A4 */
+        .main-content {
+            margin-bottom: 10mm !important;
+            padding-bottom: 0 !important;
+        }
+        
+        .profile-section {
+            margin-bottom: 8mm !important;
+        }
+        
+        .section {
+            margin-bottom: 6mm !important;
+        }
+        
+        /* Logo styling for production */
+        .logo-au, .logo {
+            width: 700px !important;
+            height: 100px !important;
+            object-fit: contain !important;
+            display: block !important;
+        }
+        
+        .logo-container {
+            height: 80px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+        }
+        
+        .hackerrank-logo, .leetcode-logo {
+            width: 120px !important;
+            height: 60px !important;
+            object-fit: contain !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Header positioning for production */
+        .header-container {
+            margin-top: 0mm !important;
+            padding-top: 0 !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        
+        /* Ensure images load properly in production */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            image-rendering: -webkit-optimize-contrast !important;
+            image-rendering: crisp-edges !important;
+        }
 
 /* Download Button */
 .download-container {
@@ -786,45 +870,69 @@ body {
         let processedHtml = html;
 
         // Determine the correct base URL based on environment
-        const baseUrl = process.env.NODE_ENV === 'production'
+        // Check for production environment more reliably
+        const isProduction = process.env.NODE_ENV === 'production' ||
+            process.env.RENDER === 'true' ||
+            req.headers.host?.includes('render.com') ||
+            req.headers.host?.includes('onrender.com');
+
+        const baseUrl = isProduction
             ? 'https://resume-maker-new.onrender.com'
             : 'http://localhost:3000';
 
-        // Replace various image path patterns
+        console.log('Environment detection:', {
+            NODE_ENV: process.env.NODE_ENV,
+            RENDER: process.env.RENDER,
+            host: req.headers.host,
+            isProduction: isProduction,
+            baseUrl: baseUrl
+        });
+
+        // Comprehensive image path replacement for production
+        console.log('Original HTML sample (first 500 chars):', processedHtml.substring(0, 500));
+
+        // Step 1: Replace all relative image paths
         processedHtml = processedHtml.replace(/src="\.\/images\//g, `src="${baseUrl}/images/`);
         processedHtml = processedHtml.replace(/src="images\//g, `src="${baseUrl}/images/`);
         processedHtml = processedHtml.replace(/src="\.\/favicon\//g, `src="${baseUrl}/favicon/`);
         processedHtml = processedHtml.replace(/src="favicon\//g, `src="${baseUrl}/favicon/`);
 
-        // Handle logo paths specifically - all logo files are in images directory
+        // Step 2: Handle logo paths specifically
         processedHtml = processedHtml.replace(/src="\.\/logo\./g, `src="${baseUrl}/images/logo.`);
         processedHtml = processedHtml.replace(/src="logo\./g, `src="${baseUrl}/images/logo.`);
 
-        // Handle specific logo files that might be referenced directly
-        const logoFiles = [
+        // Step 3: Handle all specific image files
+        const imageFiles = [
             'logo.png', 'jm-logo.jpg', 'hackerrank-logo.png', 'leetcode-logo.png',
             'nptel.png', 'Coursera.png', 'oracle.png', 'linkedin-logo.png',
             'hackerrank.png', 'leetcode.png', 'linkedin.png', 'github.png',
-            'email.png', 'phone.png', 'qr.png', 'stopstalk.png'
+            'email.png', 'phone.png', 'qr.png', 'stopstalk.png', 'Profile-pic.jpg',
+            'Dinesh.PNG', 'jm-logo.jpg'
         ];
 
-        logoFiles.forEach(logoFile => {
-            // Handle patterns like src="./logo.png" or src="logo.png"
-            processedHtml = processedHtml.replace(
-                new RegExp(`src="\\.?/?${logoFile.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g'),
-                `src="${baseUrl}/images/${logoFile}"`
-            );
+        imageFiles.forEach(imageFile => {
+            // Handle various patterns: src="./file.png", src="file.png", src="./images/file.png"
+            const patterns = [
+                new RegExp(`src="\\.?/?${imageFile.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g'),
+                new RegExp(`src="\\.?/?images/${imageFile.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')
+            ];
+
+            patterns.forEach(pattern => {
+                processedHtml = processedHtml.replace(pattern, `src="${baseUrl}/images/${imageFile}"`);
+            });
         });
 
-        // Additional comprehensive pattern to catch any remaining image references
-        processedHtml = processedHtml.replace(/src="\.\/([^"]*\.(png|jpg|jpeg|gif|svg|webp))"/g, `src="${baseUrl}/images/$1"`);
-        processedHtml = processedHtml.replace(/src="([^"]*\.(png|jpg|jpeg|gif|svg|webp))"/g, (match, filename) => {
+        // Step 4: Catch-all pattern for any remaining relative image paths
+        processedHtml = processedHtml.replace(/src="\.\/([^"]*\.(png|jpg|jpeg|gif|svg|webp|PNG|JPG|JPEG))"/g, `src="${baseUrl}/images/$1"`);
+        processedHtml = processedHtml.replace(/src="([^"]*\.(png|jpg|jpeg|gif|svg|webp|PNG|JPG|JPEG))"/g, (match, filename) => {
             // Only replace if it's not already an absolute URL
-            if (!filename.startsWith('http')) {
+            if (!filename.startsWith('http') && !filename.startsWith('data:')) {
                 return `src="${baseUrl}/images/${filename}"`;
             }
             return match;
         });
+
+        console.log('After image replacement (first 500 chars):', processedHtml.substring(0, 500));
 
         console.log('Image path replacements applied. Base URL:', baseUrl);
         console.log('Sample processed HTML after image replacement:', processedHtml.substring(0, 1000));
@@ -906,10 +1014,18 @@ body {
 
         let pdfBuffer;
         try {
-            pdfBuffer = await htmlPdf.generatePdf({
+            // Add timeout wrapper to prevent hanging
+            const pdfGenerationPromise = htmlPdf.generatePdf({
                 content: templateHtml,
                 context: { username: username }
             }, options);
+
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('PDF generation timeout')), 45000); // 45 second timeout
+            });
+
+            pdfBuffer = await Promise.race([pdfGenerationPromise, timeoutPromise]);
+
         } catch (error) {
             console.error('PDF generation failed with primary options:', error.message);
 
@@ -944,11 +1060,22 @@ body {
                 ]
             };
 
-            console.log('Trying fallback PDF generation...');
-            pdfBuffer = await htmlPdf.generatePdf({
-                content: templateHtml,
-                context: { username: username }
-            }, fallbackOptions);
+            try {
+                console.log('Trying fallback PDF generation...');
+                const fallbackPromise = htmlPdf.generatePdf({
+                    content: templateHtml,
+                    context: { username: username }
+                }, fallbackOptions);
+
+                const fallbackTimeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Fallback PDF generation timeout')), 20000); // 20 second timeout
+                });
+
+                pdfBuffer = await Promise.race([fallbackPromise, fallbackTimeoutPromise]);
+            } catch (fallbackError) {
+                console.error('Fallback PDF generation also failed:', fallbackError.message);
+                throw fallbackError;
+            }
         }
 
         // Set response headers
@@ -962,6 +1089,13 @@ body {
 
     } catch (error) {
         console.error('PDF generation error:', error);
+        console.error('Error stack:', error.stack);
+
+        // Clean up any potential memory leaks
+        if (global.gc) {
+            global.gc();
+        }
+
         res.status(500).json({
             error: 'Failed to generate PDF',
             details: error.message
@@ -1095,6 +1229,53 @@ app.get('/api/test', (req, res) => {
     res.json({ status: "Backend is live!" });
 });
 
+// Production debug endpoint
+app.get('/api/debug/production', (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production' ||
+        process.env.RENDER === 'true' ||
+        req.headers.host?.includes('render.com') ||
+        req.headers.host?.includes('onrender.com');
+
+    res.json({
+        environment: {
+            NODE_ENV: process.env.NODE_ENV,
+            RENDER: process.env.RENDER,
+            host: req.headers.host,
+            isProduction: isProduction,
+            baseUrl: isProduction ? 'https://resume-maker-new.onrender.com' : 'http://localhost:3000'
+        },
+        fileChecks: {
+            cssFile: fs.existsSync(path.join(__dirname, 'assets', 'index.css')),
+            templateFile: fs.existsSync(path.join(__dirname, 'templates', 'resume.html')),
+            imagesDir: fs.existsSync(path.join(__dirname, '..', 'frontend', 'images'))
+        },
+        memory: process.memoryUsage()
+    });
+});
+
+
+// Add process-level error handling to prevent crashes
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    console.error('Error stack:', error.stack);
+    // Don't exit the process, just log the error
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // Don't exit the process, just log the error
+});
+
+// Add memory monitoring
+setInterval(() => {
+    const used = process.memoryUsage();
+    console.log('Memory usage:', {
+        rss: Math.round(used.rss / 1024 / 1024) + ' MB',
+        heapTotal: Math.round(used.heapTotal / 1024 / 1024) + ' MB',
+        heapUsed: Math.round(used.heapUsed / 1024 / 1024) + ' MB',
+        external: Math.round(used.external / 1024 / 1024) + ' MB'
+    });
+}, 30000); // Log every 30 seconds
 
 app.listen(PORT, () => {
     console.log(`PDF generation server running on port ${PORT}`);
