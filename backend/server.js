@@ -79,7 +79,7 @@ app.post('/generate-pdf', async (req, res) => {
 
         // Fix image paths to use absolute URLs for proper loading
         let processedHtml = html;
-        processedHtml = processedHtml.replace(/src="\.\/images\//g, 'src="https://resume-backend-app.azurewebsites.net/images/');
+        processedHtml = processedHtml.replace(/src="\.\/images\//g, 'src="https://resume-maker-new.onrender.com/images/');
 
         // Replace the placeholder with actual resume content
         templateHtml = templateHtml.replace('<!-- Resume content will be injected here -->', processedHtml);
@@ -172,3 +172,4 @@ app.listen(PORT, () => {
     console.log(`Resume form: http://localhost:${PORT}/resume-form`);
     console.log(`Resume preview: http://localhost:${PORT}/preview`);
 });
+
