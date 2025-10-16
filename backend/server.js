@@ -116,16 +116,64 @@ app.post('/generate-pdf', async (req, res) => {
         }
         const cssContent = fs.readFileSync(cssPath, 'utf8');
 
-        // Inject CSS content before the existing style tag
-        templateHtml = templateHtml.replace('<!-- CSS will be injected by server -->', `<style>${cssContent}</style>`);
+        // Inject CSS content with higher specificity to override template styles
+        const enhancedCSS = `
+        <style>
+        /* Main CSS with higher specificity */
+        ${cssContent}
+        
+        /* Override template styles with !important */
+        .resume-container {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            margin: 0 auto !important;
+            padding: 0 6mm !important;
+            background: white !important;
+            box-shadow: none !important;
+            position: relative !important;
+            overflow: visible !important;
+            box-sizing: border-box !important;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif !important;
+            background-color: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            min-height: 297mm !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+        }
+        
+        html {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Ensure images load properly */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            image-rendering: -webkit-optimize-contrast !important;
+            image-rendering: crisp-edges !important;
+        }
+        </style>`;
+
+        templateHtml = templateHtml.replace('<!-- CSS will be injected by server -->', enhancedCSS);
 
         // Fix image paths to use absolute URLs for proper loading
         let processedHtml = html;
-        // Current: 
-        // processedHtml = processedHtml.replace(/src="\.\/images\//g, 'src="http://localhost:3000/images/');
 
-        // Change to your production domain:
-        processedHtml = processedHtml.replace(/src="\.\/images\//g, 'src="https://resume-maker-new.onrender.com/images/');
+        // Determine the correct base URL based on environment
+        const baseUrl = process.env.NODE_ENV === 'production'
+            ? 'https://resume-maker-new.onrender.com'
+            : 'http://localhost:3000';
+
+        processedHtml = processedHtml.replace(/src="\.\/images\//g, `src="${baseUrl}/images/`);
 
         // Replace the placeholder with actual resume content
         templateHtml = templateHtml.replace('<!-- Resume content will be injected here -->', processedHtml);
@@ -137,6 +185,11 @@ app.post('/generate-pdf', async (req, res) => {
         console.log('HTML content length:', html.length);
         console.log('Processed HTML length:', processedHtml.length);
         console.log('Template HTML length:', templateHtml.length);
+        console.log('Base URL for images:', baseUrl);
+        console.log('CSS content length:', cssContent.length);
+
+        // Log sample of processed HTML to debug
+        console.log('Sample processed HTML (first 500 chars):', processedHtml.substring(0, 500));
 
         // Generate PDF with html-pdf-node - exact same styling as preview
         const options = {
@@ -170,7 +223,11 @@ app.post('/generate-pdf', async (req, res) => {
                 '--disable-extensions',
                 '--disable-plugins',
                 '--disable-images=false',
-                '--disable-javascript=false'
+                '--disable-javascript=false',
+                '--enable-features=NetworkService',
+                '--disable-web-security',
+                '--allow-running-insecure-content',
+                '--disable-features=VizDisplayCompositor'
             ]
         };
 
@@ -261,24 +318,62 @@ app.get('/debug/paths', (req, res) => {
     res.json(debugInfo);
 });
 
+// Helper function to find file with multiple possible paths
+const findStaticFile = (filename) => {
+    const possiblePaths = [
+        path.join(__dirname, '..', 'frontend', filename),
+        path.join(__dirname, '..', '..', 'frontend', filename),
+        path.join(process.cwd(), 'frontend', filename),
+        path.join(process.cwd(), 'src', 'frontend', filename),
+        path.join(process.cwd(), 'backend', '..', 'frontend', filename),
+        path.join(__dirname, 'frontend', filename)
+    ];
+
+    for (const filePath of possiblePaths) {
+        if (fs.existsSync(filePath)) {
+            return filePath;
+        }
+    }
+    return null;
+};
+
 // Serve the main landing page at /landing
 app.get('/landing-page', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+    const filePath = findStaticFile('index.html');
+    if (filePath) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Landing page not found');
+    }
 });
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+    const filePath = findStaticFile('index.html');
+    if (filePath) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Home page not found');
+    }
 });
-
 
 // Resume form endpoint
 app.get('/resume-form', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'resume-form.html'));
+    const filePath = findStaticFile('resume-form.html');
+    if (filePath) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Resume form not found');
+    }
 });
 
 // Resume preview endpoint
 app.get('/preview', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'preview.html'));
+    const filePath = findStaticFile('preview.html');
+    if (filePath) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Preview page not found');
+    }
 });
 
 app.get('/api/test', (req, res) => {
