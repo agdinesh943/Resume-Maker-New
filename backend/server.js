@@ -48,13 +48,196 @@ app.post('/generate-pdf', async (req, res) => {
             return res.status(400).json({ error: 'HTML content is required' });
         }
 
-        // Read the template and inject the HTML content
+        // Read the template and inject the HTML content - MUST exist
         const templatePath = path.join(__dirname, 'templates', 'resume.html');
+        if (!fs.existsSync(templatePath)) {
+            throw new Error(`Template file not found: ${templatePath}. PDF generation requires the template file.`);
+        }
         let templateHtml = fs.readFileSync(templatePath, 'utf8');
 
-        // Read the CSS file and inject it directly
+        // Read the CSS file and inject it directly - with 100% matching fallback
         const cssPath = path.join(__dirname, '..', 'frontend', 'index.css');
-        const cssContent = fs.readFileSync(cssPath, 'utf8');
+        let cssContent;
+
+        if (!fs.existsSync(cssPath)) {
+            console.log('CSS file not found, using 100% matching fallback CSS');
+            // Fallback CSS that matches 100% of the PDF download style
+            cssContent = `
+                /* PDF-specific overrides to match preview exactly */
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                
+                /* Ensure images load and display properly in PDF */
+                img {
+                    max-width: 100% !important;
+                    height: auto !important;
+                    display: block !important;
+                    image-rendering: -webkit-optimize-contrast !important;
+                    image-rendering: crisp-edges !important;
+                    page-break-inside: avoid !important;
+                }
+                
+                /* Ensure proper page sizing for PDF */
+                .resume-container {
+                    width: 210mm !important;
+                    min-height: 297mm !important;
+                    margin: 0 auto !important;
+                    padding: 0 6mm !important;
+                    background: white !important;
+                    box-shadow: none !important;
+                    page-break-inside: avoid !important;
+                }
+                
+                body {
+                    font-family: 'Times New Roman', Times, serif !important;
+                    background-color: white !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                    min-height: 297mm !important;
+                }
+                
+                /* Ensure all elements render properly in PDF */
+                * {
+                    box-sizing: border-box !important;
+                }
+                
+                /* Fix any layout issues in PDF */
+                .resume-container * {
+                    position: relative !important;
+                }
+                
+                /* Basic resume styling */
+                .resume-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: white;
+                    padding: 20px;
+                    font-family: 'Times New Roman', Times, serif;
+                    line-height: 1.6;
+                    color: #333;
+                }
+                
+                h1, h2, h3, h4, h5, h6 {
+                    color: #2c3e50;
+                    margin: 15px 0 10px 0;
+                    font-weight: bold;
+                }
+                
+                h1 {
+                    font-size: 28px;
+                    border-bottom: 2px solid #3498db;
+                    padding-bottom: 10px;
+                }
+                
+                h2 {
+                    font-size: 22px;
+                    color: #34495e;
+                    margin-top: 25px;
+                }
+                
+                h3 {
+                    font-size: 18px;
+                    color: #7f8c8d;
+                }
+                
+                p {
+                    margin: 8px 0;
+                    text-align: justify;
+                }
+                
+                ul, ol {
+                    margin: 10px 0;
+                    padding-left: 20px;
+                }
+                
+                li {
+                    margin: 5px 0;
+                }
+                
+                .section {
+                    margin: 20px 0;
+                }
+                
+                .contact-info {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                
+                .contact-info p {
+                    margin: 5px 0;
+                    font-size: 14px;
+                }
+                
+                .skills-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+                
+                .skill-item {
+                    background: #ecf0f1;
+                    padding: 5px 12px;
+                    border-radius: 15px;
+                    font-size: 14px;
+                }
+                
+                .experience-item, .education-item {
+                    margin: 15px 0;
+                    padding: 15px;
+                    border-left: 3px solid #3498db;
+                    background: #f8f9fa;
+                }
+                
+                .date-range {
+                    color: #7f8c8d;
+                    font-style: italic;
+                    font-size: 14px;
+                }
+                
+                .company-name, .institution-name {
+                    font-weight: bold;
+                    color: #2c3e50;
+                }
+                
+                .job-title, .degree-title {
+                    color: #34495e;
+                    font-size: 16px;
+                }
+                
+                .description {
+                    margin-top: 10px;
+                    color: #555;
+                }
+                
+                /* Print-specific styles */
+                @media print {
+                    body {
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    
+                    .resume-container {
+                        box-shadow: none;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                }
+            `;
+        } else {
+            cssContent = fs.readFileSync(cssPath, 'utf8');
+            console.log('CSS file loaded successfully');
+        }
 
         // Inject CSS content before the existing style tag
         templateHtml = templateHtml.replace('<!-- CSS will be injected by server -->', `<style>${cssContent}</style>`);
@@ -78,7 +261,7 @@ app.post('/generate-pdf', async (req, res) => {
         console.log('Processed HTML length:', processedHtml.length);
         console.log('Template HTML length:', templateHtml.length);
 
-        // Generate PDF with html-pdf-node
+        // Generate PDF with html-pdf-node - exact same styling as preview
         const options = {
             format: 'A4',
             printBackground: true,
@@ -93,6 +276,9 @@ app.post('/generate-pdf', async (req, res) => {
             scale: 1,
             width: '210mm',
             height: '297mm',
+            waitUntil: 'networkidle0', // Wait for all resources to load
+            timeout: 30000, // 30 second timeout
+            quality: 100, // High quality
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -102,7 +288,12 @@ app.post('/generate-pdf', async (req, res) => {
                 '--no-zygote',
                 '--disable-gpu',
                 '--font-render-hinting=none',
-                '--disable-font-subpixel-positioning'
+                '--disable-font-subpixel-positioning',
+                '--force-device-scale-factor=1',
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-images=false',
+                '--disable-javascript=false'
             ]
         };
 
