@@ -17,6 +17,7 @@ const baseUrl = isAzure
 app.use(cors({
     origin: [
         'https://au-resume-maker.netlify.app',  // Your Netlify frontend URL
+        'https://resume-maker-new.onrender.com',
         'https://resume-backend-app.azurewebsites.net',  // Your Azure App Service URL
         'https://resume-backend-07-dkawbthjh0b5hdeb.centralindia-01.azurewebsites.net'    // Your old backend URL (for compatibility)
     ],
@@ -74,12 +75,67 @@ app.post('/generate-pdf', async (req, res) => {
         }
         const cssContent = fs.readFileSync(cssPath, 'utf8');
 
-        // Inject CSS content before the existing style tag
-        templateHtml = templateHtml.replace('<!-- CSS will be injected by server -->', `<style>${cssContent}</style>`);
+        // Inject CSS content before the existing style tag with important overrides for PDF
+        const pdfCssOverrides = `
+            /* PDF-specific overrides to match preview exactly */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            /* Ensure images load and display properly in PDF */
+            img {
+                max-width: 100% !important;
+                height: auto !important;
+                display: block !important;
+                image-rendering: -webkit-optimize-contrast !important;
+                image-rendering: crisp-edges !important;
+                page-break-inside: avoid !important;
+            }
+            
+            /* Ensure proper page sizing for PDF */
+            .resume-container {
+                width: 210mm !important;
+                min-height: 297mm !important;
+                margin: 0 auto !important;
+                padding: 0 6mm !important;
+                background: white !important;
+                box-shadow: none !important;
+                page-break-inside: avoid !important;
+            }
+            
+            body {
+                font-family: 'Times New Roman', Times, serif !important;
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                min-height: 297mm !important;
+            }
+            
+            /* Ensure all elements render properly in PDF */
+            * {
+                box-sizing: border-box !important;
+            }
+            
+            /* Fix any layout issues in PDF */
+            .resume-container * {
+                position: relative !important;
+            }
+        `;
+
+        templateHtml = templateHtml.replace('<!-- CSS will be injected by server -->', `<style>${cssContent}${pdfCssOverrides}</style>`);
 
         // Fix image paths to use absolute URLs for proper loading
         let processedHtml = html;
         processedHtml = processedHtml.replace(/src="\.\/images\//g, 'src="https://resume-maker-new.onrender.com/images/');
+
+        // Fix any other relative image paths
+        processedHtml = processedHtml.replace(/src="images\//g, 'src="https://resume-maker-new.onrender.com/images/');
+
+        // Ensure images have proper attributes for PDF generation
+        processedHtml = processedHtml.replace(/<img([^>]*?)src="([^"]*?)"([^>]*?)>/g, '<img$1src="$2"$3 style="max-width: 100%; height: auto; display: block;">');
 
         // Replace the placeholder with actual resume content
         templateHtml = templateHtml.replace('<!-- Resume content will be injected here -->', processedHtml);
@@ -103,13 +159,25 @@ app.post('/generate-pdf', async (req, res) => {
             printBackground: true,
             displayHeaderFooter: false,
             preferCSSPageSize: true,
+            waitUntil: 'networkidle0', // Wait for all images to load
+            timeout: 30000, // 30 second timeout
+            quality: 100, // High quality PDF
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-gpu',
                 '--disable-dev-shm-usage',
                 '--disable-web-security',
-                '--disable-features=VizDisplayCompositor'
+                '--disable-features=VizDisplayCompositor',
+                '--enable-local-file-access',
+                '--allow-running-insecure-content',
+                '--disable-web-security',
+                '--disable-features=VizDisplayCompositor',
+                '--force-device-scale-factor=1',
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-images=false',
+                '--disable-javascript=false'
             ]
         };
 
@@ -172,4 +240,3 @@ app.listen(PORT, () => {
     console.log(`Resume form: http://localhost:${PORT}/resume-form`);
     console.log(`Resume preview: http://localhost:${PORT}/preview`);
 });
-
