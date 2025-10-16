@@ -1,11 +1,9 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core');
 const htmlPdf = require('html-pdf-node');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 
 
 const app = express();
@@ -115,31 +113,7 @@ app.post('/generate-pdf', async (req, res) => {
             ]
         };
 
-        // Try to find Chrome/Chromium executable
-        let executablePath;
-        const possiblePaths = [
-            '/usr/bin/chromium-browser',
-            '/usr/bin/chromium',
-            '/usr/bin/google-chrome',
-            '/usr/bin/google-chrome-stable',
-            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
-        ];
-
-        for (const path of possiblePaths) {
-            if (fs.existsSync(path)) {
-                executablePath = path;
-                break;
-            }
-        }
-
-        if (executablePath) {
-            options.executablePath = executablePath;
-            console.log('Using Chrome executable at:', executablePath);
-        } else {
-            console.log('No Chrome executable found, using default');
-        }
+        // html-pdf-node will automatically find Chrome/Chromium
 
         // Generate PDF using html-pdf-node
         const pdfBuffer = await htmlPdf.generatePdf({ content: templateHtml }, options);
