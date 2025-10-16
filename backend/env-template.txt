@@ -1,0 +1,19 @@
+# Server Configuration
+PORT=3000
+
+# Environment Mode
+NODE_ENV=production
+TESTING=false
+
+# Email Configuration (REQUIRED for production)
+# You MUST configure these for production to enable email functionality
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+
+# Note: 
+# - PORT: Server port (defaults to 3000 if not set)
+# - NODE_ENV: Set to 'development' or 'production'
+# - TESTING: Set to 'false' for production (enables real email authentication)
+# - EMAIL_USER: Your Gmail address for sending magic links (REQUIRED for production)
+# - EMAIL_PASS: Your Gmail app password (REQUIRED for production)
+
