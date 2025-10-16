@@ -1,0 +1,658 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #f5f5f5;
+    padding: 0;
+    font-size: 16px;
+    /* Increased base font size */
+    text-align: justify;
+}
+
+/* Download Button */
+.download-container {
+    text-align: center;
+    margin-bottom: 50px;
+    margin-top: 20px;
+}
+
+.download-btn {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.download-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.resume-container {
+    width: 210mm;
+    /* A4 width */
+    min-height: 297mm;
+    /* A4 height - use min-height to allow content to expand */
+    margin: 0 auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    background: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 0 6mm;
+    position: relative;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+/* Ensure proper centering for PDF generation */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.header {
+    /* background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); */
+    color: white;
+    /* padding: 8px 10px; */
+    margin: -6mm -6mm 0 -6mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header .logo,
+.logo-au {
+    width: 700px;
+    height: 100px;
+    padding-left: 5px;
+    object-fit: contain;
+    margin-top: 5px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    margin-top: 1mm;
+    position: relative;
+    z-index: 10;
+}
+
+.logo-container {
+    margin-left: 60px;
+    height: 80px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.hackerrank-logo,
+.leetcode-logo {
+    width: 120px;
+    height: 60px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-bottom: 20px;
+}
+
+.header p {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+    text-align: right;
+}
+
+/* Profile Section */
+.profile-section {
+    display: flex;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+}
+
+.profile-left {
+    flex: 1;
+    width: 50%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding-right: 12px;
+}
+
+
+.profile-photo-bg {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: block;
+    flex-shrink: 0;
+}
+
+.profile-photo {
+    width: 140px;
+    height: 140px;
+    /* aspect-ratio intentionally omitted for reliable PDF rendering */
+    border-radius: 50%;
+    /* border: 4px solid rgb(15, 78, 78); */
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    flex-shrink: 0;
+}
+
+/* Ensure profile image is not squashed in print/PDF */
+@media print {
+    .profile-photo-bg {
+        width: 140px !important;
+        height: 140px !important;
+        border-radius: 50% !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+    }
+
+    .profile-photo {
+        width: 140px !important;
+        height: 140px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+    }
+}
+
+.student-name {
+    font-size: 20px;
+    /* Increased from 18px */
+    font-weight: bold;
+    color: rgb(0, 67, 95);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.profile-right {
+    flex: 1;
+    width: 50%;
+    padding-left: 12px;
+}
+
+
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    /* Increased from 14px */
+    margin-bottom: 3px;
+}
+
+.contact-item a {
+    text-decoration: none;
+    color: inherit;
+    margin-left: 8px;
+}
+
+
+.email-container {
+    margin-left: 8px;
+}
+
+.email-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.email-item:last-child {
+    margin-bottom: 0;
+}
+
+.email-label {
+    font-weight: bold;
+    color: black;
+    min-width: 10px;
+}
+
+.contact-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Main Content */
+.main-content {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15mm;
+}
+
+.left-column {
+    flex: 1;
+}
+
+.right-column {
+    flex: 1;
+}
+
+/* Section Styling */
+.section {
+    margin-bottom: 10px;
+}
+
+.section-title {
+    font-size: 18px;
+    /* Increased from 16px */
+    font-weight: bold;
+    color: rgb(0, 67, 95);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 2px;
+}
+
+.section-content {
+    font-size: 14px;
+    line-height: 1.3;
+    color: black;
+}
+
+/* Education */
+.education-item {
+    margin-bottom: 2px;
+    padding-bottom: 1px;
+}
+
+.education-item:last-child {
+    border-bottom: none;
+}
+
+.degree,
+.degree-12 {
+    font-weight: bold;
+    color: black;
+    font-size: 16px;
+    /* Increased from 15px */
+    margin-bottom: 2px;
+}
+
+.degree-12 {
+    flex-shrink: 0;
+    /* Prevent left column from shrinking */
+    white-space: nowrap;
+    /* Keep it in one line */
+}
+
+.university {
+    color: black;
+    font-size: 14px;
+    /* Increased from 13px */
+    margin: 0;
+    flex: 1;
+    /* Take remaining space */
+    word-wrap: break-word;
+    /* Wrap long text */
+}
+
+.college-city {
+    font-size: 11px;
+    color: #888;
+    margin-top: 1px;
+    font-style: italic;
+}
+
+.education-details {
+    font-size: 14px;
+    text-align: justify;
+    width: 98%;
+    color: black;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+/* Inline headers for education and projects */
+.edu-header {
+    display: block;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.project-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+/* Keep degree + specialization on one line and allow wrap cleanly */
+.degree-line {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 6px;
+    row-gap: 2px;
+    align-items: baseline;
+}
+
+.specialization {
+    font-weight: 600;
+    color: black;
+    font-size: 14px;
+}
+
+.project-sep {
+    margin: 0 6px;
+    color: black;
+}
+
+.year-gpa {
+    white-space: nowrap;
+    font-size: 14px;
+    width: 100%;
+    /* Increased from 12px */
+    color: black;
+}
+
+/* PDF-focused fixes */
+@media print {
+    .resume-container {
+        width: 210mm;
+        min-height: 297mm;
+        box-shadow: none;
+        margin: 0 auto;
+        padding: 0 6mm;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        position: relative;
+    }
+
+    /* Ensure body centers the content properly */
+    body {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+
+    /* Position top logos at top of page with no gap */
+    .header-container {
+        margin-top: 0mm !important;
+        padding-top: 0 !important;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Position footer at bottom of page with small gap */
+    .footer {
+        position: absolute !important;
+        bottom: 1mm !important;
+        left: 6mm !important;
+        right: 6mm !important;
+        margin: 0 !important;
+        padding: 6px 0 0 0 !important;
+        /* Added top padding for gap between border and content */
+        z-index: 10;
+    }
+
+    /* Ensure main content doesn't overlap with footer */
+    .main-content {
+        margin-bottom: 15mm !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Remove top gaps from profile section */
+    .profile-section {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    /* Logo styling for PDF */
+    .logo-au {
+        width: 500px !important;
+        height: 100px !important;
+        object-fit: contain !important;
+    }
+
+    .logo-container {
+        height: 80px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 15px !important;
+    }
+
+    .hackerrank-logo,
+    .leetcode-logo {
+        width: 120px !important;
+        height: 60px !important;
+        object-fit: contain !important;
+        vertical-align: middle !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* Ensure proper spacing */
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+/* Skills */
+.skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 95%;
+
+}
+
+.skill-item {
+    font-size: 14px;
+    /* Increased from 13px */
+    line-height: 1.3;
+    color: black;
+    margin-bottom: 1px;
+    width: 95%;
+}
+
+/* Projects */
+.project-item {
+    margin-bottom: 8px;
+}
+
+.project-item:last-child {
+    border-bottom: none;
+}
+
+.project-title {
+    font-weight: bold;
+    color: black;
+    font-size: 15px;
+    /* Increased from 14px */
+    margin-bottom: 1px;
+}
+
+.project-tech {
+    color: black;
+    font-size: 14px;
+    /* Increased from 14px */
+    margin: 0;
+}
+
+.project-description {
+    font-size: 14px;
+    /* Increased from 13px */
+    color: black;
+    margin-top: 0;
+    text-align: justify;
+    width: 95%;
+}
+
+/* Experience */
+.experience-item {
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.experience-item:last-child {
+    border-bottom: none;
+}
+
+.job-title {
+    font-weight: bold;
+    color: black;
+    font-size: 15px;
+    /* Increased from 14px */
+}
+
+.company {
+    color: black;
+    font-size: 14px;
+    /* Increased from 13px */
+    margin: 1px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.duration {
+    color: black;
+    font-size: 13px;
+    /* Increased from 12px */
+    font-weight: 500;
+}
+
+.job-description {
+    font-size: 14px;
+    /* Increased from 13px */
+    color: black;
+    margin-top: 2px;
+    text-align: justify;
+    width: 98%;
+}
+
+/* Certifications */
+.cert-item {
+    margin-bottom: 5px;
+    padding-bottom: 3px;
+    /* Removed border-bottom line */
+}
+
+.cert-combined {
+    font-weight: normal;
+    /* Changed from bold to normal */
+    color: black;
+    font-size: 14px;
+    /* Using the larger font size */
+    line-height: 1.3;
+    text-align: justify;
+}
+
+.cert-link {
+    color: rgb(0, 67, 95);
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: normal;
+}
+
+.cert-link:hover {
+    text-decoration: none;
+}
+
+.achievement-link {
+    color: rgb(0, 67, 95);
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: normal;
+}
+
+.achievement-link:hover {
+    text-decoration: none;
+}
+
+/* Achievements */
+.achievements-list {
+    list-style: none;
+    padding: 0;
+}
+
+.achievements-list li {
+    margin-bottom: 4px;
+    /* padding-left: 15px; */
+    position: relative;
+    font-size: 14px;
+    /* Increased from 13px */
+    color: black;
+    text-align: justify;
+}
+
+.achievements-list li:before {
+    /* content: "•"; */
+    color: rgb(0, 67, 95);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.qr {
+    width: 120px;
+    height: 120px;
+}
+
+.achievements-img {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.duration-list {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+/* Footer */
+.footer {
+    position: absolute;
+    bottom: 1mm;
+    left: 6mm;
+    right: 6mm;
+    text-align: center;
+    padding-top: 8px;
+    /* Increased from 4px to create more gap between border and content */
+    /* border-top: 2px solid rgb(0, 67, 95); */
+    z-index: 10;
+}
+
+.footer-bold {
+    font-weight: 800 !important;
+}
+
+.footer-content {
+    font-size: 14px;
+    color: black;
+    line-height: 1.2;
+}
