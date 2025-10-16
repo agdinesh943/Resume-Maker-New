@@ -878,22 +878,78 @@ body {
                 '--disable-plugins',
                 '--disable-images=false',
                 '--disable-javascript=false',
-                '--enable-features=NetworkService',
                 '--disable-web-security',
                 '--allow-running-insecure-content',
                 '--disable-features=VizDisplayCompositor',
-                '--virtual-time-budget=5000',
                 '--run-all-compositor-stages-before-draw',
                 '--disable-background-timer-throttling',
                 '--disable-renderer-backgrounding',
-                '--disable-backgrounding-occluded-windows'
+                '--disable-backgrounding-occluded-windows',
+                '--disable-background-networking',
+                '--disable-default-apps',
+                '--disable-sync',
+                '--disable-translate',
+                '--hide-scrollbars',
+                '--mute-audio',
+                '--no-default-browser-check',
+                '--no-pings',
+                '--disable-logging',
+                '--disable-permissions-api',
+                '--disable-popup-blocking',
+                '--disable-prompt-on-repost',
+                '--disable-domain-reliability',
+                '--disable-client-side-phishing-detection',
+                '--disable-component-extensions-with-background-pages',
+                '--disable-ipc-flooding-protection'
             ]
         };
 
-        const pdfBuffer = await htmlPdf.generatePdf({
-            content: templateHtml,
-            context: { username: username }
-        }, options);
+        let pdfBuffer;
+        try {
+            pdfBuffer = await htmlPdf.generatePdf({
+                content: templateHtml,
+                context: { username: username }
+            }, options);
+        } catch (error) {
+            console.error('PDF generation failed with primary options:', error.message);
+
+            // Fallback with simpler options
+            const fallbackOptions = {
+                format: 'A4',
+                printBackground: true,
+                margin: {
+                    top: '0mm',
+                    right: '0mm',
+                    bottom: '0mm',
+                    left: '0mm'
+                },
+                preferCSSPageSize: false,
+                displayHeaderFooter: false,
+                scale: 1,
+                width: '210mm',
+                height: '297mm',
+                waitUntil: 'domcontentloaded', // Less strict than networkidle0
+                timeout: 15000, // Shorter timeout
+                quality: 100,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--no-first-run',
+                    '--disable-extensions',
+                    '--disable-plugins',
+                    '--disable-images=false',
+                    '--disable-javascript=false'
+                ]
+            };
+
+            console.log('Trying fallback PDF generation...');
+            pdfBuffer = await htmlPdf.generatePdf({
+                content: templateHtml,
+                context: { username: username }
+            }, fallbackOptions);
+        }
 
         // Set response headers
         const filename = `resume_${username.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
