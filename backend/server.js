@@ -796,11 +796,38 @@ body {
         processedHtml = processedHtml.replace(/src="\.\/favicon\//g, `src="${baseUrl}/favicon/`);
         processedHtml = processedHtml.replace(/src="favicon\//g, `src="${baseUrl}/favicon/`);
 
-        // Handle logo paths specifically
+        // Handle logo paths specifically - all logo files are in images directory
         processedHtml = processedHtml.replace(/src="\.\/logo\./g, `src="${baseUrl}/images/logo.`);
         processedHtml = processedHtml.replace(/src="logo\./g, `src="${baseUrl}/images/logo.`);
 
+        // Handle specific logo files that might be referenced directly
+        const logoFiles = [
+            'logo.png', 'jm-logo.jpg', 'hackerrank-logo.png', 'leetcode-logo.png',
+            'nptel.png', 'Coursera.png', 'oracle.png', 'linkedin-logo.png',
+            'hackerrank.png', 'leetcode.png', 'linkedin.png', 'github.png',
+            'email.png', 'phone.png', 'qr.png', 'stopstalk.png'
+        ];
+
+        logoFiles.forEach(logoFile => {
+            // Handle patterns like src="./logo.png" or src="logo.png"
+            processedHtml = processedHtml.replace(
+                new RegExp(`src="\\.?/?${logoFile.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g'),
+                `src="${baseUrl}/images/${logoFile}"`
+            );
+        });
+
+        // Additional comprehensive pattern to catch any remaining image references
+        processedHtml = processedHtml.replace(/src="\.\/([^"]*\.(png|jpg|jpeg|gif|svg|webp))"/g, `src="${baseUrl}/images/$1"`);
+        processedHtml = processedHtml.replace(/src="([^"]*\.(png|jpg|jpeg|gif|svg|webp))"/g, (match, filename) => {
+            // Only replace if it's not already an absolute URL
+            if (!filename.startsWith('http')) {
+                return `src="${baseUrl}/images/${filename}"`;
+            }
+            return match;
+        });
+
         console.log('Image path replacements applied. Base URL:', baseUrl);
+        console.log('Sample processed HTML after image replacement:', processedHtml.substring(0, 1000));
 
         // Replace the placeholder with actual resume content
         templateHtml = templateHtml.replace('<!-- Resume content will be injected here -->', processedHtml);
